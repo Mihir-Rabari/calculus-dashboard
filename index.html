@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics Topics Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .topic-item {
+            animation: fadeIn 0.3s ease forwards;
+            opacity: 0;
+        }
+        .chapter-header {
+            transition: all 0.3s ease;
+        }
+        .completed-icon {
+            animation: pulse 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex justify-center p-4">
+    <div class="w-full max-w-md p-2 h-auto">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-800">
+            CALCULUS
+        </h1>
+
+        <!-- Progress and Topic Count Container -->
+        <div class="mb-6">
+            <div class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 mb-2">
+                <div id="progressBar" class="bg-blue-600 h-4 rounded-full transition-all duration-500 ease-in-out" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div id="progressText" class="text-center font-semibold text-gray-700">
+                    Progress: 0%
+                </div>
+                <div id="topicCountText" class="text-center font-semibold text-gray-700">
+                    Topics: 0/0
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics Container -->
+        <div id="topicsContainer"></div>
+    </div>
+
+    <script>
+        const mathematicsTopics = [
+            {
+                chapter: "Differentiation",
+                topics: [
+                    "Successive Differentiation",
+                    "Leibnitz's Rule",
+                    "Indeterminate Forms",
+                    "Taylor's Series",
+                    "Maclaurin's Series"
+                ]
+            },
+            {
+                chapter: "Partial Differentiation and its Applications",
+                topics: [
+                    "Functions of two or more Variables",
+                    "Limits and Continuity",
+                    "Partial derivatives",
+                    "Homogeneous Functions",
+                    "Euler's Theorem",
+                    "Total derivative",
+                    "Implicit Functions",
+                    "Change of Variables",
+                    "Jacobians",
+                    "Directional Derivatives",
+                    "Gradients",
+                    "Tangent Planes and Normal Lines",
+                    "Taylor's Theorem for two Variables",
+                    "Errors and Approximations",
+                    "Maxima and Minima",
+                    "Lagrange's Method of Undetermined Multipliers"
+                ]
+            },
+            {
+                chapter: "Tracing of Curves",
+                topics: [
+                    "Tracing Cartesian Curves",
+                    "Tracing Parametric Curves",
+                    "Tracing Polar Curves"
+                ]
+            },
+            {
+                chapter: "Integration",
+                topics: [
+                    "Reduction Formulae",
+                    "Beta Functions",
+                    "Gamma Functions",
+                    "Error Functions",
+                    "Improper Integrals"
+                ]
+            },
+            {
+                chapter: "Multiple Integrals",
+                topics: [
+                    "Double Integrals",
+                    "Change of Order of Integration",
+                    "Double Integrals in Polar Coordinates",
+                    "Change of Variables",
+                    "Area by Double Integration",
+                    "Triple Integrals",
+                    "Volume as Triple Integral"
+                ]
+            },
+            {
+                chapter: "Infinite Sequence and Series",
+                topics: [
+                    "Infinite Sequence",
+                    "Infinite Series",
+                    "Geometric Series",
+                    "Telescoping Series",
+                    "nth term test for Divergent Series",
+                    "Integral Test",
+                    "Comparison Tests",
+                    "D'Alembert's Ratio Test",
+                    "Cauchy's Root Test",
+                    "Alternating Series",
+                    "Absolute and Conditional Convergence",
+                    "Power Series and Convergence",
+                    "Radius and Interval of Convergence"
+                ]
+            }
+        ];
+
+        // Load saved topics from local storage
+        let savedTopics = JSON.parse(localStorage.getItem('mathTopics')) || 
+            mathematicsTopics.map(chapter => ({
+                ...chapter,
+                expanded: true,
+                topics: chapter.topics.map(topic => ({
+                    text: topic,
+                    completed: false
+                }))
+            }));
+
+        const topicsContainer = document.getElementById('topicsContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const topicCountText = document.getElementById('topicCountText');
+
+        function renderTopics() {
+            topicsContainer.innerHTML = '';
+            savedTopics.forEach((chapter, chapterIndex) => {
+                const chapterElement = document.createElement('div');
+                chapterElement.className = 'bg-white shadow-md rounded-lg overflow-hidden mb-4 topic-item';
+                
+                const chapterHeader = document.createElement('div');
+                chapterHeader.className = 'bg-blue-500 text-white p-3 font-bold chapter-header flex justify-between items-center cursor-pointer';
+                chapterHeader.innerHTML = `
+                    <span>${chapter.chapter}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 chapter-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="${chapter.expanded ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}" />
+                    </svg>
+                `;
+                
+                chapterHeader.addEventListener('click', () => {
+                    chapter.expanded = !chapter.expanded;
+                    renderTopics();
+                    updateProgress();
+                });
+                chapterElement.appendChild(chapterHeader);
+
+                if (chapter.expanded) {
+                    const topicsList = document.createElement('div');
+                    topicsList.className = 'p-2';
+
+                    chapter.topics.forEach((topic, topicIndex) => {
+                        const topicItem = document.createElement('div');
+                        topicItem.className = `
+                            flex items-center p-2 cursor-pointer 
+                            ${topic.completed ? 'bg-green-50' : 'hover:bg-gray-50'}
+                            transition-colors duration-200 rounded-md
+                        `;
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.checked = topic.completed;
+                        checkbox.className = 'mr-2 h-4 w-4';
+                        
+                        const topicText = document.createElement('span');
+                        topicText.textContent = topic.text;
+                        topicText.className = `
+                            flex-grow 
+                            ${topic.completed ? 'line-through text-gray-500' : 'text-gray-800'}
+                        `;
+
+                        const checkIcon = document.createElement('span');
+                        checkIcon.innerHTML = topic.completed 
+                            ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 completed-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+                            : '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" /></svg>';
+
+                        topicItem.addEventListener('click', (e) => {
+                            if (e.target !== checkbox) {
+                                checkbox.checked = !checkbox.checked;
+                            }
+                            savedTopics[chapterIndex].topics[topicIndex].completed = checkbox.checked;
+                            localStorage.setItem('mathTopics', JSON.stringify(savedTopics));
+                            renderTopics();
+                            updateProgress();
+                        });
+
+                        topicItem.appendChild(checkbox);
+                        topicItem.appendChild(topicText);
+                        topicItem.appendChild(checkIcon);
+                        topicsList.appendChild(topicItem);
+                    });
+
+                    chapterElement.appendChild(topicsList);
+                }
+
+                topicsContainer.appendChild(chapterElement);
+            });
+        }
+
+        function updateProgress() {
+            const allTopics = savedTopics.flatMap(chapter => chapter.topics);
+            const completedTopics = allTopics.filter(topic => topic.completed);
+            const progressPercentage = Math.round((completedTopics.length / allTopics.length) * 100);
+            
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.textContent = `Progress: ${progressPercentage}%`;
+            topicCountText.textContent = `Topics: ${completedTopics.length}/${allTopics.length}`;
+        }
+
+        // Initial render and progress update
+        renderTopics();
+        updateProgress();
+        alert("Warning: If you spot a bug, don’t report, just deal with it! 😜 Use it at your own risk, because during testing, the tester might’ve had a heart attack (no kidding, i am talking serious drama here) 💔. If you think this is useful, well, cool, but if not... well, no big deal, just go and study. You’ll see the website once you press OK\n\n my dearest pc users i have to tell you something fuck-off cause this thing is not gonna work on pc if this works let me know ( i am seriously serious here @_mihir._.rabari_3 )😜 \n\n\n © LAXMI CHEATFUND ALL RIGHTS DELIBERATELY VIOLATED ")
+    </script>
+</body>
+</html>
